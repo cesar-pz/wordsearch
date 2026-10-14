@@ -382,6 +382,161 @@ body.night .v-stats dd { color: #ff9de6; }
 .v-code li.active::before { color: #fff; opacity: 0.8; }
 body.night .v-code li.active { background: linear-gradient(135deg, #9b4dff, #e055c8); }
 
+/* Tabs and shared controls */
+
+.v-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.v-tab {
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: var(--soft);
+  color: var(--muted);
+  cursor: pointer;
+}
+.v-tab:hover { color: var(--text); }
+.v-tab[aria-selected="true"] { background: #667eea; border-color: #667eea; color: #fff; }
+body.night .v-tab[aria-selected="true"] { background: linear-gradient(135deg, #9b4dff, #e055c8); border-color: transparent; }
+.v-tab:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+#viz > .v-controls { margin: 0 0 18px; }
+.stats .v-stat { color: var(--accent); font-weight: 700; }
+body.night .stats .v-stat { color: #ff9de6; }
+.v-footer { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-top: 20px; }
+
+/* ---------- Link packing scene ---------- */
+
+/* Section colors: the validated categorical order (settings → words follow
+   each other in the bit stream). End markers are neutral, padding hatched. */
+:root {
+  --sec-settings: #2a78d6;
+  --sec-size: #eb6834;
+  --sec-seed: #1baf7a;
+  --sec-title: #eda100;
+  --sec-words: #e87ba4;
+  --sec-end: #8a8f98;
+  --bar: #2a78d6;
+}
+body.night {
+  --sec-settings: #3987e5;
+  --sec-size: #d95926;
+  --sec-seed: #199e70;
+  --sec-title: #c98500;
+  --sec-words: #d55181;
+  --sec-end: #9a8fb0;
+  --bar: #3987e5;
+}
+.sec-settings { --sec: var(--sec-settings); }
+.sec-size { --sec: var(--sec-size); }
+.sec-seed { --sec: var(--sec-seed); }
+.sec-title { --sec: var(--sec-title); }
+.sec-words { --sec: var(--sec-words); }
+.sec-end { --sec: var(--sec-end); }
+.sec-pad { --sec: var(--sec-end); }
+
+.lk { display: grid; gap: 14px; }
+.lk .bank { margin-bottom: 0; }
+.lk-top { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 14px; }
+.lk-note { color: var(--muted); font-size: 0.85rem; }
+.lk-subhead { margin: 16px 0 8px; font-size: 0.95rem; }
+
+/* Bits: tinted cell, colored underline; the digit stays in text color. */
+.lk-bits { display: inline-flex; gap: 1px; }
+.lk-bit {
+  display: inline-grid;
+  place-items: center;
+  width: 1.15em;
+  height: 1.5em;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  background: color-mix(in srgb, var(--sec) 18%, transparent);
+  border-bottom: 3px solid var(--sec);
+  border-radius: 3px 3px 0 0;
+}
+.lk-bit.sec-pad {
+  background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--sec) 30%, transparent) 0 3px, transparent 3px 6px);
+  border-bottom-style: dashed;
+}
+.lk-bit.reading { outline: 2px solid var(--accent); outline-offset: 0; position: relative; z-index: 1; }
+
+/* Focus card */
+.lk-focus { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; min-height: 76px; }
+.lk-part { display: grid; justify-items: center; gap: 4px; }
+.lk-part .lk-bit { width: 1.6em; height: 2em; font-size: 1.05rem; }
+.lk-val { font-size: 1.5rem; font-weight: 700; color: var(--heading); line-height: 1.2; }
+.lk-cap { font-size: 0.75rem; color: var(--muted); text-align: center; }
+.lk-arrow { font-size: 1.4rem; color: var(--muted); }
+
+.lk-legend { list-style: none; display: grid; gap: 6px; font-size: 0.88rem; }
+.lk-legend li { display: flex; align-items: center; gap: 8px; }
+.lk-swatch { width: 18px; height: 12px; border-radius: 3px 3px 0 0; background: color-mix(in srgb, var(--sec) 18%, transparent); border-bottom: 3px solid var(--sec); }
+.lk-swatch.sec-pad { background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--sec) 30%, transparent) 0 3px, transparent 3px 6px); border-bottom-style: dashed; }
+
+/* Bytes */
+.lk-bytes { display: flex; flex-wrap: wrap; gap: 10px 8px; }
+.lk-byte { display: grid; gap: 3px; padding: 4px; border-radius: 6px; transition: background-color 0.3s; }
+.lk-byte.new { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.lk-byte-meta { display: flex; justify-content: space-between; gap: 6px; font-size: 0.72rem; color: var(--muted); }
+.lk-dec { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.lk-label { max-width: 7em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.lk-buffer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); font-size: 0.85rem; color: var(--muted); }
+.lk-buffer-count { font-weight: 700; color: var(--text); }
+
+/* Alphabet lookup tables */
+.lk-alpha { display: flex; flex-wrap: wrap; gap: 4px; }
+.lk-alpha-item {
+  display: grid;
+  justify-items: center;
+  min-width: 2.1em;
+  padding: 3px 4px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  line-height: 1.1;
+  transition: background-color 0.15s, transform 0.15s;
+}
+body.night .lk-alpha-item { background: rgba(255, 255, 255, 0.04); }
+.lk-alpha-item b { font-size: 0.9rem; }
+.lk-alpha-item small { font-size: 0.65rem; color: var(--muted); }
+.lk-alpha-item.hi { background: #667eea; border-color: #667eea; color: #fff; transform: scale(1.15); }
+.lk-alpha-item.hi small { color: rgba(255, 255, 255, 0.85); }
+body.night .lk-alpha-item.hi { background: linear-gradient(135deg, #9b4dff, #e055c8); border-color: transparent; }
+
+/* Base64 groups */
+.lk-groups { display: flex; flex-wrap: wrap; gap: 10px 8px; margin-top: 14px; }
+.lk-group { display: grid; justify-items: center; gap: 4px; padding: 4px; border-radius: 6px; }
+.lk-group.new { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.lk-char {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-weight: 700;
+  color: var(--text);
+  border-bottom: 3px solid var(--sec);
+  padding: 0 2px;
+}
+
+/* Final link and length comparison */
+.lk-link {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.95rem;
+  line-height: 1.9;
+  word-break: break-all;
+}
+.lk-link .lk-char { padding: 0 1px; }
+.lk-origin { color: var(--muted); }
+
+.lk-compare { display: grid; gap: 8px; }
+.lk-bar-row { display: grid; grid-template-columns: 190px minmax(0, 1fr) 3.5em; align-items: center; gap: 10px; font-size: 0.88rem; }
+.lk-bar-label { color: var(--muted); }
+.lk-bar-row.packed .lk-bar-label { color: var(--text); font-weight: 700; }
+.lk-bar-track { height: 12px; }
+.lk-bar { height: 100%; min-width: 4px; background: var(--bar); border-radius: 0 4px 4px 0; }
+.lk-bar-value { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+
 /* ---------- Corner controls (theme, ducks, motion) ---------- */
 
 .corner-controls {
@@ -623,6 +778,10 @@ body.no-motion .corner-btn:hover { transform: none; }
 @media (max-width: 760px) {
   .play-body, #viz .play-body { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   .v-text { min-height: 6em; }
+  .lk-top { grid-template-columns: minmax(0, 1fr); }
+  .lk-legend { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+  .lk-bar-row { grid-template-columns: minmax(0, 1fr) 3.5em; }
+  .lk-bar-row .lk-bar-label { grid-column: 1 / -1; }
   .actions { grid-template-columns: 1fr 1fr; }
   .actions .btn { padding-left: 10px; padding-right: 10px; }
 }

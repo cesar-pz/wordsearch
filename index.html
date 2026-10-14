@@ -99,36 +99,40 @@
 
     <!-- Visualize the algorithm -->
     <section id="viz" class="view" hidden>
+      <div class="v-tabs" id="v-tabs" role="tablist" aria-label="Visualizations">
+        <button id="tab-grid" class="v-tab" role="tab" type="button" aria-controls="scene-grid" aria-selected="true">1. Build the grid</button>
+        <button id="tab-link" class="v-tab" role="tab" type="button" aria-controls="scene-link" aria-selected="false" tabindex="-1">2. Pack the link</button>
+      </div>
+
       <div class="play-head">
-        <h1>How the grid is built</h1>
-        <div class="stats">
-          <span>Attempt <span id="v-attempt">1</span></span>
-          <span>Seed <span id="v-seed"></span></span>
-        </div>
+        <h1 id="v-title">How the grid is built</h1>
+        <div id="v-stats" class="stats"></div>
       </div>
 
       <p id="v-text" class="message info v-text" aria-live="polite"></p>
 
-      <div class="play-body">
+      <div class="v-controls">
+        <button id="v-restart" class="btn btn-secondary" type="button" title="Start over">↺ Restart</button>
+        <button id="v-play" class="btn btn-primary" type="button">Pause</button>
+        <button id="v-step" class="btn btn-secondary" type="button" title="Jump to the next key step">Step ›</button>
+        <button id="v-end" class="btn btn-secondary" type="button" title="Skip to the end">Skip »</button>
+        <label class="v-speed">Speed
+          <select id="v-speed">
+            <option value="0.5">½×</option>
+            <option value="1" selected>1×</option>
+            <option value="2">2×</option>
+            <option value="4">4×</option>
+            <option value="10">10×</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- Scene 1: building the grid -->
+      <div id="scene-grid" class="play-body" role="tabpanel" aria-labelledby="tab-grid">
         <div class="board-wrap">
           <div id="v-board" class="board v-board" aria-label="Grid being built">
             <div id="v-cells" class="cells"></div>
             <svg id="v-marks" class="marks" aria-hidden="true"></svg>
-          </div>
-          <div class="v-controls">
-            <button id="v-restart" class="btn btn-secondary" type="button" title="Start over">↺ Restart</button>
-            <button id="v-play" class="btn btn-primary" type="button">Pause</button>
-            <button id="v-step" class="btn btn-secondary" type="button" title="Jump to the next key step">Step ›</button>
-            <button id="v-end" class="btn btn-secondary" type="button" title="Skip to the finished grid">Skip »</button>
-            <label class="v-speed">Speed
-              <select id="v-speed">
-                <option value="0.5">½×</option>
-                <option value="1" selected>1×</option>
-                <option value="2">2×</option>
-                <option value="4">4×</option>
-                <option value="10">10×</option>
-              </select>
-            </label>
           </div>
         </div>
 
@@ -158,11 +162,50 @@
               <li>fill blanks randomly</li>
             </ol>
           </div>
-          <div class="actions">
-            <button id="v-playgame" class="btn btn-primary" type="button">Play this puzzle</button>
-            <button id="v-new" class="btn btn-secondary" type="button">Make your own</button>
-          </div>
         </aside>
+      </div>
+
+      <!-- Scene 2: packing the link -->
+      <div id="scene-link" class="lk" role="tabpanel" aria-labelledby="tab-link" hidden>
+        <div class="lk-top">
+          <div class="bank lk-focus-card">
+            <div class="bank-head"><h2 id="lk-stage"></h2></div>
+            <div id="lk-focus" class="lk-focus"></div>
+          </div>
+          <div class="bank">
+            <div class="bank-head"><h2>Key</h2></div>
+            <ul id="lk-legend" class="lk-legend"></ul>
+          </div>
+        </div>
+
+        <div id="lk-alpha-card" class="bank" hidden>
+          <div class="bank-head"><h2>Letter codes</h2><span class="lk-note">5 bits each</span></div>
+          <div id="lk-alpha" class="lk-alpha"></div>
+        </div>
+
+        <div class="bank">
+          <div class="bank-head"><h2>Bytes</h2><span id="lk-bytecount" class="lk-note"></span></div>
+          <div id="lk-bytes" class="lk-bytes"></div>
+          <div id="lk-buffer" class="lk-buffer" hidden></div>
+        </div>
+
+        <div id="lk-b64-card" class="bank" hidden>
+          <div class="bank-head"><h2>Base64 characters</h2><span class="lk-note">6 bits each</span></div>
+          <div id="lk-b64alpha" class="lk-alpha"></div>
+          <div id="lk-groups" class="lk-groups"></div>
+        </div>
+
+        <div id="lk-done-card" class="bank" hidden>
+          <div class="bank-head"><h2>The link</h2></div>
+          <p id="lk-link" class="lk-link"></p>
+          <h2 class="lk-subhead">Link length in characters</h2>
+          <div id="lk-compare" class="lk-compare"></div>
+        </div>
+      </div>
+
+      <div class="actions v-footer">
+        <button id="v-playgame" class="btn btn-primary" type="button">Play this puzzle</button>
+        <button id="v-new" class="btn btn-secondary" type="button">Make your own</button>
       </div>
     </section>
   </main>
@@ -181,6 +224,8 @@
 
   <script src="js/puzzle.js"></script>
   <script src="js/ducks.js"></script>
+  <script src="js/viz-grid.js"></script>
+  <script src="js/viz-link.js"></script>
   <script src="js/visualize.js"></script>
   <script src="js/app.js"></script>
 </body>

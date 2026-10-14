@@ -30,6 +30,19 @@ Every random number comes from a seeded PRNG (mulberry32), so the same seed alwa
 
 **Visualize the algorithm** on the create page (or `#watch/<code>`) replays these steps in real time. It shows the scan with a heatmap of the cells where a word can start, clashes, the candidates and the dice roll, letters being written, restarts and the random fill. It also highlights the matching pseudocode line and has play, step, skip and speed controls. It replays the real trace from `generate()`, so it always ends with the exact puzzle grid. On the play page it's offered only after the puzzle is solved or the answers are revealed, so it can't spoil anything.
 
+### Link visualizer
+
+The second tab, **Pack the link**, replays `encode()` step by step:
+
+- The settings byte, bit by bit.
+- The grid size and the 24-bit seed.
+- The title as UTF-8 bytes.
+- Each letter as a 5-bit code, with the bits piling up and being cut into bytes.
+- The padding at the end.
+- Base64 turning each 6 bits into a link-safe character.
+
+It finishes with the colour-coded link and a comparison with readable alternatives (the whole grid as text, or the seed and words as text). Like the grid tab, it replays the real trace, so the characters it builds are exactly the puzzle's code.
+
 ## Run locally
 
 It's plain HTML/CSS/JS with no build step. Serve the folder with any static server:
@@ -48,4 +61,5 @@ Deploy by uploading the folder to any static host (GitHub Pages, Cloudflare Page
 - `js/puzzle.js`: seeded grid generation, word finding, share-code encoding and decoding (no DOM, works in Node)
 - `js/ducks.js`: wandering ASCII ducks, starfield and the theme, duck and motion toggles (prefs use Ducktionary's localStorage keys)
 - `js/app.js`: UI, drag or tap selection, timer, progress saved in localStorage
-- `js/visualize.js`: the step-by-step algorithm visualizer
+- `js/visualize.js`: visualizer shell (shared player, controls and tabs)
+- `js/viz-grid.js`, `js/viz-link.js`: the grid-building and link-packing scenes

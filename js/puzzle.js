@@ -242,38 +242,92 @@
     return Uint8Array.from(bin, (c) => c.charCodeAt(0));
   }
 
-  function encode({ title = '', size, seed, diagonal, backwards, words }) {
-    let titleBytes = new TextEncoder().encode(title);
-    if (titleBytes.length > MAX_TITLE_BYTES) {
-      // Trim whole characters until it fits.
-      let t = title;
-      while (new TextEncoder().encode(t).length > MAX_TITLE_BYTES) t = [...t].slice(0, -1).join('');
-      titleBytes = new TextEncoder().encode(t);
+  const BASE64URL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+
+  // `trace`, if given, receives every step for the link visualizer. Bytes
+  // carry the section each of their bits came from.
+  function encode({ title = '', size, seed, diagonal, backwards, words }, trace) {
+    const enc = new TextEncoder();
+    // Trim whole characters until the title fits.
+    while (enc.encode(title).length > MAX_TITLE_BYTES) title = [...title].slice(0, -1).join('');
+    const titleBytes = enc.encode(title);
+
+    const bytes = [];
+    const pushByte = (value, sections, label = '') => {
+      bytes.push(value);
+      if (trace) trace({ type: 'byte', value, sections, label });
+    };
+    const whole = (section) => new Array(8).fill(section);
+
+    const flags = (VERSION << 4) | (diagonal ? 2 : 0) | (backwards ? 1 : 0);
+    if (trace) trace({ type: 'settings', version: VERSION, diagonal: !!diagonal, backwards: !!backwards, value: flags });
+    pushByte(flags, whole('settings'), 'settings');
+    if (trace) trace({ type: 'size', size });
+    pushByte(size, whole('size'), 'size');
+    if (trace) trace({ type: 'seed', seed });
+    pushByte((seed >> 16) & 0xff, whole('seed'), 'seed');
+    pushByte((seed >> 8) & 0xff, whole('seed'), 'seed');
+    pushByte(seed & 0xff, whole('seed'), 'seed');
+    if (trace) trace({ type: 'title', title, length: titleBytes.length });
+    pushByte(titleBytes.length, whole('title'), 'length');
+    for (const ch of title) {
+      const chBytes = [...enc.encode(ch)];
+      if (trace) trace({ type: 'title-char', ch, bytes: chBytes });
+      chBytes.forEach((b, i) => pushByte(b, whole('title'), i ? '' : ch));
     }
-    const bytes = [
-      (VERSION << 4) | (diagonal ? 2 : 0) | (backwards ? 1 : 0),
-      size,
-      (seed >> 16) & 0xff, (seed >> 8) & 0xff, seed & 0xff,
-      titleBytes.length, ...titleBytes,
-    ];
+
+    // Words: 5-bit codes collected in `acc` and cut into bytes every 8 bits.
     let acc = 0;
     let bits = 0;
-    const push = (code) => {
+    const pending = []; // section of each bit waiting in `acc`
+    const push = (code, section) => {
       acc = (acc << 5) | code;
       bits += 5;
+      pending.push(...new Array(5).fill(section));
+      if (trace) trace({ type: 'bits', bits: code.toString(2).padStart(5, '0'), section });
       while (bits >= 8) {
         bits -= 8;
-        bytes.push((acc >> bits) & 0xff);
+        pushByte((acc >> bits) & 0xff, pending.splice(0, 8));
       }
       acc &= (1 << bits) - 1;
     };
+    if (trace) trace({ type: 'words', count: words.length });
     for (const w of words) {
-      for (const ch of w) push(ALPHABET.indexOf(ch) + 1);
-      push(0);
+      if (trace) trace({ type: 'word', word: w });
+      for (const ch of w) {
+        const code = ALPHABET.indexOf(ch) + 1;
+        if (trace) trace({ type: 'letter', ch, code });
+        push(code, 'words');
+      }
+      if (trace) trace({ type: 'end-word', word: w });
+      push(0, 'end');
     }
-    push(0);
-    if (bits) bytes.push((acc << (8 - bits)) & 0xff);
-    return toBase64Url(bytes);
+    if (trace) trace({ type: 'end-list' });
+    push(0, 'end');
+    if (bits) {
+      if (trace) trace({ type: 'pad', bits: 8 - bits });
+      pushByte((acc << (8 - bits)) & 0xff, [...pending, ...new Array(8 - bits).fill('pad')]);
+    }
+
+    const code = toBase64Url(bytes);
+    if (trace) {
+      const all = bytes.map((b) => b.toString(2).padStart(8, '0')).join('');
+      trace({ type: 'base64', bytes: bytes.length, bits: all.length });
+      for (let i = 0; i < all.length; i += 6) {
+        const chunk = all.slice(i, i + 6);
+        const value = parseInt(chunk.padEnd(6, '0'), 2);
+        trace({ type: 'b64', start: i, bits: chunk, padded: 6 - chunk.length, value, ch: BASE64URL[value] });
+      }
+      trace({ type: 'done', code, dropped: (4 - (code.length % 4)) % 4 });
+    }
+    return code;
+  }
+
+  // Every step of packing a puzzle into its share code, for the visualizer.
+  function traceEncoding(puzzle) {
+    const events = [];
+    encode(puzzle, (e) => events.push(e));
+    return events;
   }
 
   function decode(code) {
@@ -317,7 +371,7 @@
     return { title, size, seed, diagonal, backwards, grid: r.grid, words: r.words, code: encode({ title, size, seed, diagonal, backwards, words }) };
   }
 
-  const api = { MIN_SIZE, MAX_SIZE, parseWords, autoSize, generate, create, findWord, encode, decode, traceGeneration };
+  const api = { MIN_SIZE, MAX_SIZE, parseWords, autoSize, generate, create, findWord, encode, decode, traceGeneration, traceEncoding, ALPHABET, BASE64URL };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Puzzle = api;
 })(typeof window !== 'undefined' ? window : globalThis);
