@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Word Search</title>
+  <meta name="description" content="Make a word search puzzle and share it as a playable link.">
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="starfield" aria-hidden="true"></div>
+  <div id="duckfield" aria-hidden="true"></div>
+
+  <div class="corner-controls">
+    <button id="theme-toggle" class="corner-btn" type="button" aria-label="Switch to night mode">🌙</button>
+    <button id="ducks-toggle" class="corner-btn toggle-btn" type="button" aria-pressed="true" aria-label="Hide ducks">🦆</button>
+    <button id="motion-toggle" class="corner-btn toggle-btn" type="button" aria-pressed="true" aria-label="Turn off animations">✨</button>
+  </div>
+
+  <main class="container">
+    <a href="#" class="brand">Word Search</a>
+
+    <!-- Create -->
+    <section id="create" class="view" hidden>
+      <h1>Make a word search</h1>
+      <p class="lede">Enter your words, generate a puzzle, then share the link. The words stay hidden until the player chooses to see them.</p>
+
+      <form id="create-form" class="form">
+        <label class="field">
+          <span>Title <small>optional</small></span>
+          <input id="f-title" type="text" maxlength="40" placeholder="e.g. Pond Life">
+        </label>
+
+        <label class="field">
+          <span>Words <small>one per line or comma separated</small></span>
+          <textarea id="f-words" rows="8" placeholder="DUCK&#10;POND&#10;FEATHER&#10;QUACK" required></textarea>
+        </label>
+
+        <div class="row">
+          <label class="field">
+            <span>Grid size</span>
+            <select id="f-size"></select>
+          </label>
+          <fieldset class="field">
+            <legend>Directions</legend>
+            <label class="check"><input id="f-diagonal" type="checkbox" checked> Diagonal</label>
+            <label class="check"><input id="f-backwards" type="checkbox"> Backwards</label>
+          </fieldset>
+        </div>
+
+        <p id="create-error" class="message error" hidden></p>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Generate puzzle</button>
+          <button id="btn-visualize" type="button" class="btn btn-secondary">Visualize the algorithm</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Play -->
+    <section id="play" class="view" hidden>
+      <div class="play-head">
+        <h1 id="p-title"></h1>
+        <div class="stats">
+          <span><span id="p-found">0</span>/<span id="p-total">0</span> found</span>
+          <span id="p-timer" class="timer">0:00</span>
+        </div>
+      </div>
+
+      <p id="p-notice" class="message info" hidden></p>
+
+      <div class="play-body">
+        <div class="board-wrap">
+          <div id="board" class="board" role="grid" aria-label="Letter grid">
+            <div id="cells" class="cells"></div>
+            <svg id="marks" class="marks" aria-hidden="true"></svg>
+          </div>
+        </div>
+
+        <aside class="side">
+          <div class="bank">
+            <div class="bank-head">
+              <h2>Word bank</h2>
+              <button id="btn-bank" class="btn-link" type="button" aria-expanded="false">Show words</button>
+            </div>
+            <ul id="p-words" class="words"></ul>
+            <p id="p-hidden" class="bank-hint"></p>
+          </div>
+          <div class="actions">
+            <button id="btn-share" class="btn btn-primary" type="button">Copy share link</button>
+            <button id="btn-reveal" class="btn btn-secondary" type="button">Reveal answers</button>
+            <button id="btn-restart" class="btn btn-secondary" type="button">Restart</button>
+            <button id="btn-edit" class="btn btn-secondary" type="button">Make your own</button>
+            <button id="btn-watch" class="btn btn-secondary" type="button" hidden>Watch how it was built</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Visualize the algorithm -->
+    <section id="viz" class="view" hidden>
+      <div class="play-head">
+        <h1>How the grid is built</h1>
+        <div class="stats">
+          <span>Attempt <span id="v-attempt">1</span></span>
+          <span>Seed <span id="v-seed"></span></span>
+        </div>
+      </div>
+
+      <p id="v-text" class="message info v-text" aria-live="polite"></p>
+
+      <div class="play-body">
+        <div class="board-wrap">
+          <div id="v-board" class="board v-board" aria-label="Grid being built">
+            <div id="v-cells" class="cells"></div>
+            <svg id="v-marks" class="marks" aria-hidden="true"></svg>
+          </div>
+          <div class="v-controls">
+            <button id="v-restart" class="btn btn-secondary" type="button" title="Start over">↺ Restart</button>
+            <button id="v-play" class="btn btn-primary" type="button">Pause</button>
+            <button id="v-step" class="btn btn-secondary" type="button" title="Jump to the next key step">Step ›</button>
+            <button id="v-end" class="btn btn-secondary" type="button" title="Skip to the finished grid">Skip »</button>
+            <label class="v-speed">Speed
+              <select id="v-speed">
+                <option value="0.5">½×</option>
+                <option value="1" selected>1×</option>
+                <option value="2">2×</option>
+                <option value="4">4×</option>
+                <option value="10">10×</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <aside class="side">
+          <div class="bank">
+            <div class="bank-head"><h2>Words, longest first</h2></div>
+            <ul id="v-words" class="words"></ul>
+            <dl class="v-stats">
+              <div><dt>Checked</dt><dd id="v-checked">0</dd></div>
+              <div><dt>Fit</dt><dd id="v-fit">0</dd></div>
+              <div><dt>Cross</dt><dd id="v-cross">0</dd></div>
+            </dl>
+          </div>
+          <div class="bank">
+            <div class="bank-head"><h2>The algorithm</h2></div>
+            <ol id="v-code" class="v-code">
+              <li>sort words, longest first</li>
+              <li>for each word:</li>
+              <li class="i1">for each direction &amp; cell:</li>
+              <li class="i2">off the grid? skip</li>
+              <li class="i2">letter clash? reject</li>
+              <li class="i2">else: candidate</li>
+              <li class="i1">none? leave word out</li>
+              <li class="i1">roll &lt; 0.4? crossings only</li>
+              <li class="i1">pick at random, write it</li>
+              <li>left one out? wipe, retry</li>
+              <li>fill blanks randomly</li>
+            </ol>
+          </div>
+          <div class="actions">
+            <button id="v-playgame" class="btn btn-primary" type="button">Play this puzzle</button>
+            <button id="v-new" class="btn btn-secondary" type="button">Make your own</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="confirm" class="dialog">
+    <form method="dialog">
+      <p id="confirm-msg"></p>
+      <div class="dialog-actions">
+        <button value="cancel" class="btn btn-secondary">Cancel</button>
+        <button id="confirm-ok" value="ok" class="btn btn-primary">Yes</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/puzzle.js"></script>
+  <script src="js/ducks.js"></script>
+  <script src="js/visualize.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
